@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace Movies.Models
 {
@@ -10,10 +11,12 @@ namespace Movies.Models
     {
         public int MovieId { get; set; }
 
+        [JsonIgnore]
         public Movie Movie { get; set; }
 
         public int ActorId { get; set; }
 
+        [JsonIgnore]
         public Actor Actor { get; set; }
     }
 }

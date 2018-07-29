@@ -3,67 +3,99 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Movies.Conventions;
+using Movies.Models;
+using Movies.Repository;
 using Movies.Requests;
 
 namespace Movies.Controllers
 {
-
-//GET /movies/{movieId}/actors
-
-//POST /movies(movie in body)
-//PUT /movies/{movieId}
-//PATCH /movies/{movieId}
-//DELETE /movies/{movieId}
     [Route("[controller]")]
     [ApiController]
     public class MoviesController : ControllerBase
     {
-        private readonly DataContext _context;
+        private readonly IDataRepository _repository;
 
-        public MoviesController(DataContext context)
+        public MoviesController(IDataRepository repository)
         {
-            _context = context;
-        }
-        //[ResponseType(typeof(BookDto))]
-        //public async Task<IHttpActionResult> GetBook(int id)
-        [HttpGet]
-        public ActionResult<IEnumerable<string>> GetMovies()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
-
-        [HttpGet("year/{year}")]
-        public ActionResult<IEnumerable<string>> GetMoviesByYear(int year)
-        {
-            return new string[] { "value1", "value2" };
+            _repository = repository;
         }
 
         [HttpGet("{id}")]
-        public ActionResult<string> GetMovie(int id)
+        public async Task<ActionResult<Actor>> GetMovie(int id)
         {
-            return "value";
+            Movie movie = await _repository.GetMovie(id);
+
+            if (movie == null) 
+                return NotFound();
+
+            return Ok(movie);
         }
-        
-        [HttpGet("{movieId}/actors")]
-        public ActionResult<string> GetActorsFromMovie(int movieId, int actorId)
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Movie>>> GetMoviesByYear([QueryParameterModelConvention]int? year)
         {
-            return "value";
+            IEnumerable<Movie> movies;
+
+            if (year.HasValue)
+            {
+                movies = await _repository.GetMovies(x => x.Year == year);
+            }
+            else
+            {
+                movies = await _repository.GetMovies();
+            }
+            return Ok(movies);
+        }
+
+        [HttpGet("{movieId}/actors")]
+        public async Task<ActionResult<IEnumerable<Actor>>> GetActorsFromMovie(int movieId)
+        {
+            Movie movie = await _repository.GetMovie(movieId);
+
+            if (movie == null)
+                return NotFound();
+
+
+            IEnumerable<Actor> actors = await _repository.GetActorsFromMovie(movieId);
+
+            return Ok(actors);
         }
 
         [HttpPost]
-        public void CreateMovieWithActors(CreateMovieRequest request)
+        public async Task<IActionResult> CreateMovieWithActors(CreateMovieRequest request)
         {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            Movie movie = await _repository.AddMovie(request.Title, request.Genre, request.Year, request.ActorIds);
+
+            return CreatedAtAction(nameof(GetMovie), new { id = movie.Id }, movie);
         }
 
         [HttpPost("{movieId}/actors/{actorId}")]
-        public void LinkMovieWithActor(int movieId, int actorId)
+        public async Task<IActionResult> LinkMovieWithActor(int movieId, int actorId)
         {
+            if (actorId < 1 || movieId < 1)
+                return BadRequest();
+
+            bool result = await _repository.Link(actorId, movieId);
+
+            if (!result)
+                return NotFound();
+
+            return Ok();
         }
 
         [HttpDelete("{id}")]
-        public void DeleteMovie(int id)
+        public async Task<IActionResult> DeleteMovie(int id)
         {
+            bool result = await _repository.DeleteMovie(id);
+
+            if (!result)
+                return NotFound();
+
+            return Ok();
         }
     }
 }

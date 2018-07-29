@@ -16,6 +16,6 @@ namespace Movies.Models
         [DataType(DataType.Date)]
         public DateTime BirthDate { get; set; }
 
-        public virtual ICollection<MovieRole> MovieRoles { get; set; }
+        public ICollection<MovieRole> MovieRoles { get; set; }
     }
 }
