@@ -10,7 +10,7 @@ using Movies;
 namespace Movies.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20180725193640_InitialCreate")]
+    [Migration("20180818140511_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,7 +37,7 @@ namespace Movies.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Actors");
+                    b.ToTable("Actor");
                 });
 
             modelBuilder.Entity("Movies.Models.Movie", b =>
@@ -54,7 +54,7 @@ namespace Movies.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Movies");
+                    b.ToTable("Movie");
                 });
 
             modelBuilder.Entity("Movies.Models.MovieRole", b =>
@@ -67,7 +67,7 @@ namespace Movies.Migrations
 
                     b.HasIndex("ActorId");
 
-                    b.ToTable("MovieRoles");
+                    b.ToTable("MovieRole");
                 });
 
             modelBuilder.Entity("Movies.Models.MovieRole", b =>

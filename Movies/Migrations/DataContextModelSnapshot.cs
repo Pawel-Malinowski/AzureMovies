@@ -35,7 +35,7 @@ namespace Movies.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Actors");
+                    b.ToTable("Actor");
                 });
 
             modelBuilder.Entity("Movies.Models.Movie", b =>
@@ -52,7 +52,7 @@ namespace Movies.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Movies");
+                    b.ToTable("Movie");
                 });
 
             modelBuilder.Entity("Movies.Models.MovieRole", b =>
@@ -65,7 +65,7 @@ namespace Movies.Migrations
 
                     b.HasIndex("ActorId");
 
-                    b.ToTable("MovieRoles");
+                    b.ToTable("MovieRole");
                 });
 
             modelBuilder.Entity("Movies.Models.MovieRole", b =>

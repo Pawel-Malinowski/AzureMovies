@@ -9,7 +9,7 @@ namespace Movies.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Actors",
+                name: "Actor",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -20,11 +20,11 @@ namespace Movies.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Actors", x => x.Id);
+                    table.PrimaryKey("PK_Actor", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Movies",
+                name: "Movie",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -35,11 +35,11 @@ namespace Movies.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Movies", x => x.Id);
+                    table.PrimaryKey("PK_Movie", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "MovieRoles",
+                name: "MovieRole",
                 columns: table => new
                 {
                     MovieId = table.Column<int>(nullable: false),
@@ -47,37 +47,37 @@ namespace Movies.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MovieRoles", x => new { x.MovieId, x.ActorId });
+                    table.PrimaryKey("PK_MovieRole", x => new { x.MovieId, x.ActorId });
                     table.ForeignKey(
-                        name: "FK_MovieRoles_Actors_ActorId",
+                        name: "FK_MovieRole_Actor_ActorId",
                         column: x => x.ActorId,
-                        principalTable: "Actors",
+                        principalTable: "Actor",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_MovieRoles_Movies_MovieId",
+                        name: "FK_MovieRole_Movie_MovieId",
                         column: x => x.MovieId,
-                        principalTable: "Movies",
+                        principalTable: "Movie",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_MovieRoles_ActorId",
-                table: "MovieRoles",
+                name: "IX_MovieRole_ActorId",
+                table: "MovieRole",
                 column: "ActorId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "MovieRoles");
+                name: "MovieRole");
 
             migrationBuilder.DropTable(
-                name: "Actors");
+                name: "Actor");
 
             migrationBuilder.DropTable(
-                name: "Movies");
+                name: "Movie");
         }
     }
 }
