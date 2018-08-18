@@ -29,7 +29,7 @@ namespace Movies.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    Title = table.Column<string>(nullable: true),
+                    Title = table.Column<string>(nullable: false),
                     Year = table.Column<int>(nullable: false),
                     Genre = table.Column<string>(nullable: true)
                 },

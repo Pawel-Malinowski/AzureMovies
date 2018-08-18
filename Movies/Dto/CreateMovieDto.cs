@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using Movies.Attributes;
 
 namespace Movies.Dto
@@ -10,7 +11,7 @@ namespace Movies.Dto
         [FutureYearValidation]
         public int Year { get; set; }
         public string Genre { get; set; }
-        [NotNullOrEmptyCollection]
-        public int[] ActorIds { get; set; }
+        [NotEmptyCollection]
+        public ICollection<int> ActorIds { get; set; }
     }
 }

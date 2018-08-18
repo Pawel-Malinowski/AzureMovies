@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Movies.Conventions;
+using Movies.Converters;
 using Movies.Dto;
 using Movies.Models;
-using Movies.Repository;
+using Movies.Repositories;
 
 namespace Movies.Controllers
 {
@@ -32,38 +33,43 @@ namespace Movies.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<Actor>> GetMovie(int id)
+        public async Task<ActionResult<ActorDto>> GetMovie(int id)
         {
-            Movie movie = await _movieRepository.GetAsync(id);
+            Movie movie = await _movieRepository.GetAll()
+                                                .Include(x => x.MovieRoles)
+                                                .SingleOrDefaultAsync(x => x.Id == id);
 
             if (movie == null) 
                 return NotFound();
 
-            return Ok(movie);
+            return Ok(movie.ToDto());
         }
 
         [HttpGet]
         [ProducesResponseType(200)]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetMovies()
+        public async Task<ActionResult<IEnumerable<MovieDto>>> GetMovies()
         {
-            IReadOnlyList<Movie> movies = await _movieRepository.GetAll().ToListAsync();
+            IReadOnlyList<Movie> movies = await _movieRepository.GetAll().Include(x => x.MovieRoles).ToListAsync();
 
-            return Ok(movies);
+            var movieDtos = movies.Select(x => x.ToDto());
+            return Ok(movieDtos);
         }
 
         [HttpGet("search")]
         [ProducesResponseType(200)]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetMoviesByYear([QueryParameterModelConvention]int year)
+        public async Task<ActionResult<IEnumerable<MovieDto>>> GetMoviesByYear(int year)
         {
-            IReadOnlyList<Movie> movies = await _movieRepository.SearchFor(x => x.Year == year).ToListAsync();
-
-            return Ok(movies);
+            IReadOnlyList<Movie> movies = await _movieRepository.SearchFor(x => x.Year == year)
+                                                                .Include(x => x.MovieRoles)
+                                                                .ToListAsync();
+            var movieDtos = movies.Select(x => x.ToDto());
+            return Ok(movieDtos);
         }
 
         [HttpGet("{movieId}/actors")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<IEnumerable<Actor>>> GetActorsFromMovie(int movieId)
+        public async Task<ActionResult<IEnumerable<ActorDto>>> GetActorsFromMovie(int movieId)
         {
             Movie movie = await _movieRepository.GetAsync(movieId);
 
@@ -71,12 +77,13 @@ namespace Movies.Controllers
                 return NotFound();
 
 
-            IEnumerable<Actor> actors = await _actorRepository.GetAll()
+            IReadOnlyList<Actor> actors = await _actorRepository.GetAll()
                                                               .Include(x => x.MovieRoles)
                                                               .Where(x => x.MovieRoles.Any(r => r.MovieId == movieId))
                                                               .ToListAsync();
+            IEnumerable<ActorDto> actorDtos = actors.Select(x => x.ToDto());
 
-            return Ok(actors);
+            return Ok(actorDtos);
         }
 
         [HttpPost]
@@ -97,7 +104,7 @@ namespace Movies.Controllers
             }
             await _movieRepository.SaveAsync();
 
-            return CreatedAtAction(nameof(GetMovie), new { id = newMovie.Id }, newMovie);
+            return CreatedAtAction(nameof(GetMovie), new { id = newMovie.Id }, newMovie.ToDto());
         }
 
         [HttpPut]

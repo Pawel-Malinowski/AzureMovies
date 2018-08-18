@@ -10,7 +10,7 @@ using Movies;
 namespace Movies.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20180818140511_InitialCreate")]
+    [Migration("20180818161916_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,7 +48,8 @@ namespace Movies.Migrations
 
                     b.Property<string>("Genre");
 
-                    b.Property<string>("Title");
+                    b.Property<string>("Title")
+                        .IsRequired();
 
                     b.Property<int>("Year");
 

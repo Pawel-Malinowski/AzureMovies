@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Movies.Models;
-using Movies.Repository;
+using Movies.Repositories;
 
 namespace Movies
 {

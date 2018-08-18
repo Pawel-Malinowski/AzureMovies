@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -9,14 +10,11 @@ namespace Movies.Models
     //Reference: https://github.com/aspnet/EntityFrameworkCore/issues/1368
     public class MovieRole
     {
+        [Required]
         public int MovieId { get; set; }
-
-        [JsonIgnore]
         public Movie Movie { get; set; }
-
+        [Required]
         public int ActorId { get; set; }
-
-        [JsonIgnore]
         public Actor Actor { get; set; }
     }
 }

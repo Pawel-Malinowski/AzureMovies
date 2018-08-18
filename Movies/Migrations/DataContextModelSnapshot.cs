@@ -46,7 +46,8 @@ namespace Movies.Migrations
 
                     b.Property<string>("Genre");
 
-                    b.Property<string>("Title");
+                    b.Property<string>("Title")
+                        .IsRequired();
 
                     b.Property<int>("Year");
 

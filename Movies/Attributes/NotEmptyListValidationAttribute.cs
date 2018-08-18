@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Movies.Attributes
 {
-    public class NotNullOrEmptyCollectionAttribute : ValidationAttribute
+    public class NotEmptyCollectionAttribute : ValidationAttribute
     {
         public override string FormatErrorMessage(string name)
         {

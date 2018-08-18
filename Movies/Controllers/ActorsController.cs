@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Movies.Converters;
 using Movies.Dto;
 using Movies.Models;
-using Movies.Repository;
+using Movies.Repositories;
 
 namespace Movies.Controllers
 {
@@ -31,44 +32,46 @@ namespace Movies.Controllers
 
         [HttpGet]
         [ProducesResponseType(200)]
-        public async Task<ActionResult<IEnumerable<Actor>>> GetActors()
+        public async Task<ActionResult<ICollection<Actor>>> GetActors()
         {
-            IList<Actor> actors = await _actorRepository.GetAll()
+            ICollection<Actor> actors = await _actorRepository.GetAll()
                                                         .Include(x => x.MovieRoles)
                                                         .ToListAsync();
-
-            return Ok(actors);
+            var actorDtos = actors.Select(x => x.ToDto()).ToList();
+            return Ok(actorDtos);
         }
 
         [HttpGet("{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<Actor>> GetActor(int id)
+        public async Task<ActionResult<ActorDto>> GetActor(int id)
         {
-            Actor actor = await _actorRepository.GetAsync(id);
+            Actor actor = await _actorRepository.GetAll()
+                                                .Include(x => x.MovieRoles)
+                                                .SingleOrDefaultAsync(x => x.Id == id);
 
             if (actor == null)
                 return NotFound();
 
-            return Ok(actor);
+            return Ok(actor.ToDto());
         }
 
         [HttpGet("{actorId}/movies")]
         [ProducesResponseType(200)]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetActorFilmography(int actorId)
+        public async Task<ActionResult<ICollection<MovieDto>>> GetActorFilmography(int actorId)
         {
-            IEnumerable<Movie> movies = await _movieRepository.GetAll()
+            ICollection<Movie> movies = await _movieRepository.GetAll()
                                                               .Include(x => x.MovieRoles)
                                                               .Where(x => x.MovieRoles.Any(r => r.ActorId == actorId))
                                                               .ToListAsync();
-
-            return Ok(movies);
+            var movieDtos = movies.Select(x => x.ToDto());
+            return Ok(movieDtos);
         }
 
         [HttpPost]
         [ProducesResponseType(201)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> CreateActor(CreateActorDto request)
+        public async Task<ActionResult<ActorDto>> CreateActor(CreateActorDto request)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -82,7 +85,7 @@ namespace Movies.Controllers
             await _actorRepository.AddAsync(newActor);
             await _actorRepository.SaveAsync();
 
-            return CreatedAtAction(nameof(GetActor), new { id = newActor.Id }, newActor);
+            return CreatedAtAction(nameof(GetActor), new { id = newActor.Id }, newActor.ToDto());
         }
 
         [HttpPost("{actorId}/movies/{movieId}")]
@@ -104,16 +107,15 @@ namespace Movies.Controllers
             if (!movieExists)
                 return NotFound();
 
-            bool alreadyLinked = await _movieRoleRepository.GetAll().AnyAsync(x => x.MovieId == movieId && x.ActorId == actorId);
+            bool roleExists = await _movieRoleRepository.GetAll().AnyAsync(x => x.MovieId == movieId && x.ActorId == actorId);
 
-            if (!alreadyLinked)
+            if (!roleExists)
             {
                 await _movieRoleRepository.AddAsync(new MovieRole() { ActorId = actorId, MovieId = movieId });
                 await _movieRoleRepository.SaveAsync();
             }
 
             return Ok();
-
         }
 
         [HttpDelete("{id}")]
