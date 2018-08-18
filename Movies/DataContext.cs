@@ -5,11 +5,11 @@ namespace Movies
 {
     public class DataContext : DbContext
     {
-        public DbSet<Actor> Actors { get; set; }
+      //  public DbSet<Actor> Actors { get; set; }
 
-        public DbSet<MovieRole> MovieRoles { get; set; }
+      //  public DbSet<MovieRole> MovieRoles { get; set; }
 
-        public DbSet<Movie> Movies { get; set; }
+      //  public DbSet<Movie> Movies { get; set; }
         
         //public DataContext(DbContextOptions options) : base(options)
         //{

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Movies.Conventions;
+using Movies.Dto;
 using Movies.Models;
 using Movies.Repository;
-using Movies.Requests;
 
 namespace Movies.Controllers
 {
@@ -14,17 +15,26 @@ namespace Movies.Controllers
     [ApiController]
     public class MoviesController : ControllerBase
     {
-        private readonly IDataRepository _repository;
+        private readonly IRepository<Movie> _movieRepository;
+        private readonly IRepository<Actor> _actorRepository;
+        private readonly IRepository<MovieRole> _movieRoleRepository;
 
-        public MoviesController(IDataRepository repository)
+        public MoviesController(
+            IRepository<Movie> movieRepository, 
+            IRepository<Actor> actorRepository,
+            IRepository<MovieRole> movieRoleRepository)
         {
-            _repository = repository;
+            _movieRepository = movieRepository;
+            _actorRepository = actorRepository;
+            _movieRoleRepository = movieRoleRepository;
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<Actor>> GetMovie(int id)
         {
-            Movie movie = await _repository.GetMovie(id);
+            Movie movie = await _movieRepository.GetAsync(id);
 
             if (movie == null) 
                 return NotFound();
@@ -33,69 +43,100 @@ namespace Movies.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetMoviesByYear([QueryParameterModelConvention]int? year)
+        [ProducesResponseType(200)]
+        public async Task<ActionResult<IEnumerable<Movie>>> GetMovies()
         {
-            IEnumerable<Movie> movies;
+            IReadOnlyList<Movie> movies = await _movieRepository.GetAll().ToListAsync();
 
-            if (year.HasValue)
-            {
-                movies = await _repository.GetMovies(x => x.Year == year);
-            }
-            else
-            {
-                movies = await _repository.GetMovies();
-            }
+            return Ok(movies);
+        }
+
+        [HttpGet("search")]
+        [ProducesResponseType(200)]
+        public async Task<ActionResult<IEnumerable<Movie>>> GetMoviesByYear([QueryParameterModelConvention]int year)
+        {
+            IReadOnlyList<Movie> movies = await _movieRepository.SearchFor(x => x.Year == year).ToListAsync();
+
             return Ok(movies);
         }
 
         [HttpGet("{movieId}/actors")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<IEnumerable<Actor>>> GetActorsFromMovie(int movieId)
         {
-            Movie movie = await _repository.GetMovie(movieId);
+            Movie movie = await _movieRepository.GetAsync(movieId);
 
             if (movie == null)
                 return NotFound();
 
 
-            IEnumerable<Actor> actors = await _repository.GetActorsFromMovie(movieId);
+            IEnumerable<Actor> actors = await _actorRepository.GetAll()
+                                                              .Include(x => x.MovieRoles)
+                                                              .Where(x => x.MovieRoles.Any(r => r.MovieId == movieId))
+                                                              .ToListAsync();
 
             return Ok(actors);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateMovieWithActors(CreateMovieRequest request)
+        [ProducesResponseType(201)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> CreateMovieWithActors(CreateMovieDto request)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            Movie movie = await _repository.AddMovie(request.Title, request.Genre, request.Year, request.ActorIds);
+            var newMovie = new Movie() { Title = request.Title, Year = request.Year, Genre = request.Genre };
 
-            return CreatedAtAction(nameof(GetMovie), new { id = movie.Id }, movie);
+            await _movieRepository.AddAsync(newMovie);
+
+            foreach (var actorId in request.ActorIds)
+            {
+                await _movieRoleRepository.AddAsync(new MovieRole() { Movie = newMovie, ActorId = actorId });
+            }
+            await _movieRepository.SaveAsync();
+
+            return CreatedAtAction(nameof(GetMovie), new { id = newMovie.Id }, newMovie);
         }
 
-        [HttpPost("{movieId}/actors/{actorId}")]
-        public async Task<IActionResult> LinkMovieWithActor(int movieId, int actorId)
+        [HttpPut]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> UpdateMovie(int movieId, UpdateMovieDto request)
         {
-            if (actorId < 1 || movieId < 1)
+            if (!ModelState.IsValid)
                 return BadRequest();
 
-            bool result = await _repository.Link(actorId, movieId);
+            Movie movie = await _movieRepository.GetAsync(movieId);
 
-            if (!result)
+            if (movie == null)
                 return NotFound();
 
-            return Ok();
+            movie.Title = request.Title;
+            movie.Year = request.Year;
+            movie.Genre = request.Genre;
+
+            _movieRepository.Update(movie);
+            await _movieRepository.SaveAsync();
+
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> DeleteMovie(int id)
         {
-            bool result = await _repository.DeleteMovie(id);
+            Movie movie = await _movieRepository.GetAsync(id);
 
-            if (!result)
+            if (movie == null)
                 return NotFound();
 
-            return Ok();
+            _movieRepository.Delete(movie);
+            await _movieRepository.SaveAsync();
+
+            return NoContent();
         }
     }
 }

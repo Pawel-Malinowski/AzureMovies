@@ -15,7 +15,6 @@ namespace Movies.Models
         public string LastName { get; set; }
         [DataType(DataType.Date)]
         public DateTime BirthDate { get; set; }
-
         public ICollection<MovieRole> MovieRoles { get; set; }
     }
 }

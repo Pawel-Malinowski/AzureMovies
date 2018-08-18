@@ -39,12 +39,12 @@ namespace Movies
                     options.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
             }
             services.BuildServiceProvider().GetService<DataContext>().Database.Migrate();
-            services.AddTransient<IDataRepository, DataRepository>();
-            //services.AddMvc(options =>
-            //{
-            //    options.RespectBrowserAcceptHeader = true;
-            //    options.ReturnHttpNotAcceptable = true;  // Return HTTP 406
-            //});
+            //  services.AddTransient<IDataRepository, DataRepository>();
+
+            services.AddScoped<IRepository<Actor>, Repository<Actor>>();
+            services.AddScoped<IRepository<Movie>, Repository<Movie>>();
+            services.AddScoped<IRepository<MovieRole>, Repository<MovieRole>>();
+
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
