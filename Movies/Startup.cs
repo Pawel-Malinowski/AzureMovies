@@ -28,18 +28,25 @@ namespace Movies
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                     .AddJsonOptions(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
+            string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            if (environment == "Production")
             {
                 services.AddDbContext<DataContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("CloudDbConnection")));
+                services.BuildServiceProvider().GetService<DataContext>().Database.Migrate();
             }
-            else
+            else if (environment == "Testing")
+            {
+                services.AddDbContext<DataContext>(options =>
+                    options.UseInMemoryDatabase("MoviesDatabase"));
+            }
+            else if (environment == "Development")
             {
                 services.AddDbContext<DataContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
+                services.BuildServiceProvider().GetService<DataContext>().Database.Migrate();
             }
-            services.BuildServiceProvider().GetService<DataContext>().Database.Migrate();
-            //  services.AddTransient<IDataRepository, DataRepository>();
+            
 
             services.AddScoped<IRepository<Actor>, Repository<Actor>>();
             services.AddScoped<IRepository<Movie>, Repository<Movie>>();

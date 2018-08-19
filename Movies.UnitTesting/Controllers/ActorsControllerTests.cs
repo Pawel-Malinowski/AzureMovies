@@ -37,7 +37,7 @@ namespace Movies.UnitTesting.Controllers
             var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
             
             //ACT
-            var result = await controller.GetActors();
+            ActionResult<ICollection<Actor>> result = await controller.GetActors();
 
             //ASSERT
             OkObjectResult okObjectResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -120,27 +120,26 @@ namespace Movies.UnitTesting.Controllers
             Assert.Equal(request.LastName, actorDto.LastName);
 
             Assert.Equal(request.BirthDate, actorDto.BirthDate);
-
         }
 
-        //[DataTestMethod]
-        //[DataRow("Antonio", "", 1960, 5, 4)]
-        //public async Task AddActorWithoutLastName_ReturnsActorDtoWithSameData(string firstName, string lastName, int year, int month, int day)
-        //{
-        //    var createActorRequest = new CreateActorDto() { FirstName = firstName, LastName = lastName, BirthDate = new DateTime(year, month, day) };
+        [Fact]
+        public async Task DeleteNonExistingActor_ReturnsNotFound()
+        {
+            //Arrange
+            var mockMovieRepository = new Mock<IRepository<Movie>>();
+            var mockActorRepository = new Mock<IRepository<Actor>>();
+            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
 
-        //    //mockRespository.Setup(x =>
-        //    //    x.AddActor(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>())).Returns(Task.FromResult(resultActor));
+            //Arrange
 
-        //    var controller = new ActorsController(_mockActorRepository.Object, _mockMovieRepository.Object, _mockMovieRoleRepository.Object);
+            mockActorRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Actor>(null));
+            //    x.AddActor(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>())).Returns(Task.FromResult(resultActor));
 
-        //    var result = await controller.CreateActor(createActorRequest);
+            //Act
+            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
 
-        //    Assert.IsNotNull(result.Value);
-        //    Assert.AreEqual(result.Value.FirstName, createActorRequest.FirstName);
-        //    Assert.AreEqual(result.Value.LastName, createActorRequest.LastName);
-        //    Assert.AreEqual(result.Value.BirthDate, createActorRequest.BirthDate);
-        //}
+            IActionResult result = await controller.DeleteActor(1);
+            Assert.IsType<NotFoundResult>(result);
+        }
     }
-
 }
