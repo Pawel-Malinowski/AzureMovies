@@ -30,6 +30,10 @@ namespace Movies.Controllers
             _movieRoleRepository = movieRoleRepository;
         }
 
+        /// <summary>
+        /// Get all actors
+        /// </summary>
+        /// <response code="200">Actor list retrieved</response>
         [HttpGet]
         [ProducesResponseType(200)]
         public async Task<ActionResult<ICollection<Actor>>> GetActors()
@@ -41,6 +45,13 @@ namespace Movies.Controllers
             return Ok(actorDtos);
         }
 
+        /// <summary>
+        /// Retrieve actor by Id
+        /// </summary>
+        /// <remarks>Awesomeness!</remarks>
+        /// <response code="200">Actor found</response>
+        /// <response code="404">Actor with provided id doesn't exist</response>
+        /// <response code="500">Oops! Can't create your product right now</response>
         [HttpGet("{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]

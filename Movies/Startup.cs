@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Movies.Models;
 using Movies.Repositories;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace Movies
 {
@@ -27,6 +29,12 @@ namespace Movies
             services.AddMvc()
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                     .AddJsonOptions(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info { Title = "Cloud Movie Database", Version = "v1", Contact = new Contact(){Name = "Paweł Malinowski"}});
+                c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Movies.xml"));
+            });
 
             string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             if (environment == "Production")
@@ -86,6 +94,13 @@ namespace Movies
                 });
             });
             app.UseMvc();
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Cloud Movie Database");
+            });
         }
     }
 }
