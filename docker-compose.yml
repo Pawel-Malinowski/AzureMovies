@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+
+  movies:
+    image: ${DOCKER_REGISTRY}movies
+    build:
+      context: .
+      dockerfile: Movies\Dockerfile
+

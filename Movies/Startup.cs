@@ -29,6 +29,9 @@ namespace Movies
                     .AddJsonOptions(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
             string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string connectionStringEnv = Environment.GetEnvironmentVariable("SQLAZUREDB_CONNECTION_STRING");
+            string connectionString =
+                "Server=tcp:sql-test-server-movies.database.windows.net,1433;Initial Catalog=movies-db;Persist Security Info=False;User ID=DoverAdmin;Password=Dover!@#;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
             if (environment == "Production")
             {
                 services.AddDbContext<DataContext>(options =>
@@ -43,7 +46,7 @@ namespace Movies
             else if (environment == "Development")
             {
                 services.AddDbContext<DataContext>(options =>
-                    options.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
+                    options.UseSqlServer(connectionStringEnv));
                 services.BuildServiceProvider().GetService<DataContext>().Database.Migrate();
             }
             
