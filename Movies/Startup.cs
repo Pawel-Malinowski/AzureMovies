@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Movies.Attributes;
 using Movies.Models;
 using Movies.Repositories;
 using Swashbuckle.AspNetCore.Swagger;
@@ -26,7 +27,7 @@ namespace Movies
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc()
+            services.AddMvc(options => options.Filters.Add(typeof(ValidateModelStateAttribute)))
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                     .AddJsonOptions(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
@@ -37,16 +38,12 @@ namespace Movies
             });
 
             string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
             if (environment == "Production")
             {
-                services.AddDbContext<DataContext>(options =>
+                services.AddDbContext<DataContext>(options => 
                     options.UseSqlServer(Configuration.GetConnectionString("CloudDbConnection")));
                 services.BuildServiceProvider().GetService<DataContext>().Database.Migrate();
-            }
-            else if (environment == "Testing")
-            {
-                services.AddDbContext<DataContext>(options =>
-                    options.UseInMemoryDatabase("MoviesDatabase"));
             }
             else if (environment == "Development")
             {
@@ -54,7 +51,12 @@ namespace Movies
                     options.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
                 services.BuildServiceProvider().GetService<DataContext>().Database.Migrate();
             }
-            
+            else if (environment == "Testing")
+            {
+                services.AddDbContext<DataContext>(options =>
+                    options.UseInMemoryDatabase("MoviesDatabase"));
+            }
+
 
             services.AddScoped<IRepository<Actor>, Repository<Actor>>();
             services.AddScoped<IRepository<Movie>, Repository<Movie>>();
@@ -94,7 +96,6 @@ namespace Movies
                 });
             });
             app.UseMvc();
-
             app.UseSwagger();
 
             app.UseSwaggerUI(c =>

@@ -46,20 +46,19 @@ namespace Movies.Controllers
         }
 
         /// <summary>
-        /// Retrieve actor by Id
+        /// Get actor by Id
         /// </summary>
-        /// <remarks>Awesomeness!</remarks>
+        /// <param name="actorId"></param>
         /// <response code="200">Actor found</response>
         /// <response code="404">Actor with provided id doesn't exist</response>
-        /// <response code="500">Oops! Can't create your product right now</response>
-        [HttpGet("{id}")]
+        [HttpGet("{actorId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<ActorDto>> GetActor(int id)
+        public async Task<ActionResult<ActorDto>> GetActor(int actorId)
         {
             Actor actor = await _actorRepository.GetAll()
                                                 .Include(x => x.MovieRoles)
-                                                .SingleOrDefaultAsync(x => x.Id == id);
+                                                .SingleOrDefaultAsync(x => x.Id == actorId);
 
             if (actor == null)
                 return NotFound();
@@ -67,10 +66,22 @@ namespace Movies.Controllers
             return Ok(actor.ToDto());
         }
 
+        /// <summary>
+        /// Get movies with given actor
+        /// </summary>
+        /// <param name="actorId"></param>
+        /// <response code="200">Actor filmography returned</response>
+        /// <response code="404">Actor with provided id doesn't exist</response>
         [HttpGet("{actorId}/movies")]
         [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<ICollection<MovieDto>>> GetActorFilmography(int actorId)
         {
+            Actor actor = await _actorRepository.GetAsync(actorId);
+
+            if (actor == null)
+                return NotFound();
+
             ICollection<Movie> movies = await _movieRepository.GetAll()
                                                               .Include(x => x.MovieRoles)
                                                               .Where(x => x.MovieRoles.Any(r => r.ActorId == actorId))
@@ -79,6 +90,12 @@ namespace Movies.Controllers
             return Ok(movieDtos);
         }
 
+        /// <summary>
+        /// Add new actor
+        /// </summary>
+        /// <param name="request">Actor json object</param>
+        /// <response code="201">Actor successfully created</response>
+        /// <response code="400">Provided actor model is invalid</response>
         [HttpPost]
         [ProducesResponseType(201)]
         [ProducesResponseType(400)]
@@ -99,6 +116,14 @@ namespace Movies.Controllers
             return CreatedAtAction(nameof(GetActor), new { id = newActor.Id }, newActor.ToDto());
         }
 
+        /// <summary>
+        /// Link existing actor with existing movie
+        /// </summary>
+        /// <param name="actorId"></param>
+        /// <param name="movieId"></param>
+        /// <response code="200">Actor successfully linked with movie</response>
+        /// <response code="404">Actor or movie not found</response>
+        /// <response code="400">Either of parameters are invalid</response>
         [HttpPost("{actorId}/movies/{movieId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
@@ -111,12 +136,12 @@ namespace Movies.Controllers
             bool actorExists = await _actorRepository.GetAll().AnyAsync(x => x.Id == actorId);
 
             if (!actorExists)
-                return NotFound();
+                return NotFound(nameof(actorId));
 
             bool movieExists = await _movieRepository.GetAll().AnyAsync(x => x.Id == movieId);
 
             if (!movieExists)
-                return NotFound();
+                return NotFound(nameof(movieId));
 
             bool roleExists = await _movieRoleRepository.GetAll().AnyAsync(x => x.MovieId == movieId && x.ActorId == actorId);
 
@@ -129,12 +154,18 @@ namespace Movies.Controllers
             return Ok();
         }
 
-        [HttpDelete("{id}")]
+        /// <summary>
+        /// Delete existing actor
+        /// </summary>
+        /// <param name="actorId">Actor Id</param>
+        /// <response code="204">Actor deleted successfully</response>
+        /// <response code="404">Actor doesn't exist</response>
+        [HttpDelete("{actorId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> DeleteActor(int id)
+        public async Task<IActionResult> DeleteActor(int actorId)
         {
-            Actor actor = await _actorRepository.GetAsync(id);
+            Actor actor = await _actorRepository.GetAsync(actorId);
 
             if (actor == null)
                 return NotFound();

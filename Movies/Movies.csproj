@@ -8,6 +8,10 @@
     <DocumentationFile>bin\Debug\netcoreapp2.1\Movies.xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\netcoreapp2.1\Movies.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <Folder Include="Migrations\" />
     <Folder Include="wwwroot\" />
