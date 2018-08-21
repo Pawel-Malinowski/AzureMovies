@@ -113,7 +113,7 @@ namespace Movies.Controllers
             await _actorRepository.AddAsync(newActor);
             await _actorRepository.SaveAsync();
 
-            return CreatedAtAction(nameof(GetActor), new { id = newActor.Id }, newActor.ToDto());
+            return CreatedAtAction(nameof(GetActor), new { actorId = newActor.Id }, newActor.ToDto());
         }
 
         /// <summary>
@@ -122,8 +122,8 @@ namespace Movies.Controllers
         /// <param name="actorId"></param>
         /// <param name="movieId"></param>
         /// <response code="200">Actor successfully linked with movie</response>
-        /// <response code="404">Actor or movie not found</response>
         /// <response code="400">Either of parameters are invalid</response>
+        /// <response code="404">Actor or movie not found</response>
         [HttpPost("{actorId}/movies/{movieId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]

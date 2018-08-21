@@ -133,13 +133,31 @@ namespace Movies.UnitTesting.Controllers
             //Arrange
 
             mockActorRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Actor>(null));
-            //    x.AddActor(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>())).Returns(Task.FromResult(resultActor));
 
             //Act
             var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
 
             IActionResult result = await controller.DeleteActor(1);
             Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task DeleteExistingActor_ReturnsNoContent()
+        {
+            //Arrange
+            var mockMovieRepository = new Mock<IRepository<Movie>>();
+            var mockActorRepository = new Mock<IRepository<Actor>>();
+            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
+
+            //Arrange
+
+            mockActorRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Actor>(new Actor()));
+
+            //Act
+            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
+
+            IActionResult result = await controller.DeleteActor(1);
+            Assert.IsType<NoContentResult>(result);
         }
     }
 }

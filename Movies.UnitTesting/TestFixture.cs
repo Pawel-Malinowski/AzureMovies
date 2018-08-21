@@ -15,22 +15,13 @@ namespace Movies.UnitTesting
         public TestFixture()
         {
             var builder = new WebHostBuilder()
-                //  .UseContentRoot(GetContentRootPath())
-                .UseEnvironment("Development")
-                .UseStartup<Startup>();  // Uses Start up class from your API Host project to configure the test server
+                .UseStartup<Startup>();
 
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
 
             _testServer = new TestServer(builder);
             Client = _testServer.CreateClient();
         }
-
-        //private string GetContentRootPath()
-        //{
-        //    var testProjectPath = PlatformServices.Default.Application.ApplicationBasePath;
-        //    var relativePathToHostProject = @"..\..\..\..\..\..\Product.CommandService";
-        //    return Path.Combine(testProjectPath, relativePathToHostProject);
-        //}
 
         public void Dispose()
         {

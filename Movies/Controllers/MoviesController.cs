@@ -135,7 +135,7 @@ namespace Movies.Controllers
             }
             await _movieRepository.SaveAsync();
 
-            return CreatedAtAction(nameof(GetMovie), new { id = newMovie.Id }, newMovie.ToDto());
+            return CreatedAtAction(nameof(GetMovie), new { movieId = newMovie.Id }, newMovie.ToDto());
         }
 
         /// <summary>
