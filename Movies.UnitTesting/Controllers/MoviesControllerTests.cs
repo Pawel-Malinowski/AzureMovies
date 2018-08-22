@@ -16,29 +16,42 @@ namespace Movies.UnitTesting.Controllers
 {
     public class MoviesControllerTests
     {
+        private readonly MoviesController _controller;
+
+        private readonly Mock<IRepository<Movie>> _mockMovieRepository;
+
+        private readonly Mock<IRepository<Actor>> _mockActorRepository;
+
+        private readonly Mock<IRepository<MovieRole>> _mockMovieRoleRepository;
+
+
+        public MoviesControllerTests()
+        {
+            _mockMovieRepository = new Mock<IRepository<Movie>>();
+            _mockActorRepository = new Mock<IRepository<Actor>>();
+            _mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
+
+            _controller = new MoviesController(_mockActorRepository.Object, _mockMovieRepository.Object, _mockMovieRoleRepository.Object);
+        }
+
         [Fact]
         public async Task UpdateExistingMovie_ReturnsNoContent_UpdateWasCalledAndSaved()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            //Arrange
             int movieId = 1;
-            mockMovieRepository.Setup(x => x.GetAsync(It.Is<int>(id => id == movieId))).Returns(Task.FromResult<Movie>(new Movie() { Id = movieId }));
+            _mockMovieRepository.Setup(x => x.GetAsync(It.Is<int>(id => id == movieId))).Returns(Task.FromResult<Movie>(new Movie() { Id = movieId }));
 
             //Act
-            var controller = new MoviesController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
+            var controller = new MoviesController(_mockActorRepository.Object, _mockMovieRepository.Object, _mockMovieRoleRepository.Object);
             var updateMovieDto = new UpdateMovieDto() { Title = "God father 2", Year = 1980, Genre = "Gangster" };
 
             IActionResult result = await controller.UpdateMovie(movieId, updateMovieDto);
 
-            mockMovieRepository.Verify(x => x.Update(It.Is<Movie>(m => m.Id == movieId &&
+            _mockMovieRepository.Verify(x => x.Update(It.Is<Movie>(m => m.Id == movieId &&
                                                                        m.Genre == updateMovieDto.Genre &&
                                                                        m.Title == updateMovieDto.Title &&
                                                                        m.Year == updateMovieDto.Year)), Times.Once());
-            mockMovieRepository.Verify(x => x.SaveAsync(), Times.Once());
+            _mockMovieRepository.Verify(x => x.SaveAsync(), Times.Once());
 
             Assert.IsType<NoContentResult>(result);
         }
@@ -332,6 +345,5 @@ namespace Movies.UnitTesting.Controllers
             mockMovieRepository.Verify(x => x.SaveAsync(), Times.Once);
             Assert.IsType<NoContentResult>(result);
         }
-
     }
 }

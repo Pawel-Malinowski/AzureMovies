@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.TestHost;
 
 namespace Movies.UnitTesting.Integration
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class IntegrationTestFixture : IDisposable
     {
         private readonly TestServer _testServer;

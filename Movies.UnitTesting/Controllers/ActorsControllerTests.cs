@@ -15,14 +15,28 @@ namespace Movies.UnitTesting.Controllers
 {
     public class ActorsControllerTests
     {
+        private readonly ActorsController _controller;
+
+        private readonly Mock<IRepository<Movie>> _mockMovieRepository;
+
+        private readonly Mock<IRepository<Actor>> _mockActorRepository;
+
+        private readonly Mock<IRepository<MovieRole>> _mockMovieRoleRepository;
+
+
+        public ActorsControllerTests()
+        {
+            _mockMovieRepository = new Mock<IRepository<Movie>>();
+            _mockActorRepository = new Mock<IRepository<Actor>>();
+            _mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
+
+            _controller = new ActorsController(_mockActorRepository.Object, _mockMovieRepository.Object, _mockMovieRoleRepository.Object);
+        }
+
         [Fact]
         public async Task GetActors_ReturnsExpectedNumberOfResults()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
             var actorList = new List<Actor>
             {
                 new Actor {Id = 1, FirstName = "Al", LastName = "Pacino"},
@@ -31,12 +45,10 @@ namespace Movies.UnitTesting.Controllers
             };
 
             Mock<IQueryable<Actor>> mock = actorList.AsQueryable().BuildMock();
-            mockActorRepository.Setup(x => x.GetAll()).Returns(mock.Object);
-
-            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
+            _mockActorRepository.Setup(x => x.GetAll()).Returns(mock.Object);
 
             //ACT
-            ActionResult<ICollection<ActorDto>> result = await controller.GetActors();
+            ActionResult<ICollection<ActorDto>> result = await _controller.GetActors();
 
             //ASSERT
             OkObjectResult okObjectResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -48,16 +60,10 @@ namespace Movies.UnitTesting.Controllers
         public async Task GetNonExistingActorFilmography_ReturnsNotFound()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            mockActorRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Actor>(null));
-
-            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
+            _mockActorRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Actor>(null));
 
             //ACT
-            ActionResult<ICollection<MovieDto>> result = await controller.GetActorFilmography(1);
+            ActionResult<ICollection<MovieDto>> result = await _controller.GetActorFilmography(1);
 
             //ASSERT
             Assert.IsType<NotFoundResult>(result.Result);
@@ -67,12 +73,9 @@ namespace Movies.UnitTesting.Controllers
         public async Task GetExistingActorFilmography_ReturnsExpectedMovie()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
 
             int actorId = 1;
-            mockActorRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult(new Actor()));
+            _mockActorRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult(new Actor()));
             var movieList = new List<Movie>
             {
                 new Movie {Id = 1, Title = "Pulp fiction", Year = 1990, MovieRoles = new List<MovieRole>()
@@ -90,8 +93,8 @@ namespace Movies.UnitTesting.Controllers
             };
 
             Mock<IQueryable<Movie>> mock = movieList.AsQueryable().BuildMock();
-            mockMovieRepository.Setup(x => x.GetAll()).Returns(mock.Object);
-            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
+            _mockMovieRepository.Setup(x => x.GetAll()).Returns(mock.Object);
+            var controller = new ActorsController(_mockActorRepository.Object, _mockMovieRepository.Object, _mockMovieRoleRepository.Object);
 
             //ACT
             ActionResult<ICollection<MovieDto>> result = await controller.GetActorFilmography(actorId);
@@ -106,9 +109,6 @@ namespace Movies.UnitTesting.Controllers
         public async Task GetActorById__WhenActorExists_ReturnsData()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
             var actor = new Actor { Id = 5, FirstName = "Al", LastName = "Pacino" };
 
 
@@ -116,12 +116,10 @@ namespace Movies.UnitTesting.Controllers
             {
                 actor
             }.AsQueryable().BuildMock();
-            mockActorRepository.Setup(x => x.GetAll()).Returns(mock.Object);
-
-            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
+            _mockActorRepository.Setup(x => x.GetAll()).Returns(mock.Object);
 
             //ACT
-            var result = await controller.GetActor(actor.Id);
+            var result = await _controller.GetActor(actor.Id);
 
             //ASSERT
             OkObjectResult okObjectResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -135,17 +133,11 @@ namespace Movies.UnitTesting.Controllers
         public async Task GetActorById__WhenActorIsDoesntExist_ReturnsNotFound()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            var mock = new List<Actor>().AsQueryable().BuildMock();
-            mockActorRepository.Setup(x => x.GetAll()).Returns(mock.Object);
-
-            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
+            var mockActorList = new List<Actor>().AsQueryable().BuildMock();
+            _mockActorRepository.Setup(x => x.GetAll()).Returns(mockActorList.Object);
 
             //ACT
-            var result = await controller.GetActor(1);
+            var result = await _controller.GetActor(1);
 
             //ASSERT
             Assert.IsType<NotFoundResult>(result.Result);
@@ -156,22 +148,15 @@ namespace Movies.UnitTesting.Controllers
         public async Task AddActor_AddAndSaveWasCalled_ReturnsCreatedResponse(string firstName, string lastName, int year, int month, int day)
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            //Arrange
             var request = new CreateActorDto() { FirstName = firstName, LastName = lastName, BirthDate = new DateTime(year, month, day) };
 
             //Act
-            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
-
-            var result = await controller.CreateActor(request);
-
-            mockActorRepository.Verify(x => x.AddAsync(It.Is<Actor>(a => a.FirstName == request.FirstName &&
+            ActionResult<ActorDto> result = await _controller.CreateActor(request);
+            //Assert
+            _mockActorRepository.Verify(x => x.AddAsync(It.Is<Actor>(a => a.FirstName == request.FirstName &&
                                                                          a.LastName == request.LastName && 
                                                                          a.BirthDate == request.BirthDate)), Times.Once);
-            mockActorRepository.Verify(x => x.SaveAsync(), Times.Once);
+            _mockActorRepository.Verify(x => x.SaveAsync(), Times.Once);
 
             CreatedAtActionResult createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result.Result);
             ActorDto actorDto = Assert.IsType<ActorDto>(createdAtActionResult.Value);
@@ -184,21 +169,13 @@ namespace Movies.UnitTesting.Controllers
         public async Task DeleteNonExistingActor_ReturnsNotFound_NoDeleteWasCalled()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            //Arrange
-
-            mockActorRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Actor>(null));
+            _mockActorRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Actor>(null));
 
             //Act
-            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
-
-            IActionResult result = await controller.DeleteActor(1);
-            mockActorRepository.Verify(x => x.Delete(It.IsAny<Actor>()), Times.Never());
-            mockActorRepository.Verify(x => x.SaveAsync(), Times.Never());
-
+            IActionResult result = await _controller.DeleteActor(1);
+            _mockActorRepository.Verify(x => x.Delete(It.IsAny<Actor>()), Times.Never());
+            _mockActorRepository.Verify(x => x.SaveAsync(), Times.Never());
+            //Assert
             Assert.IsType<NotFoundResult>(result);
         }
 
@@ -206,20 +183,12 @@ namespace Movies.UnitTesting.Controllers
         public async Task DeleteExistingActor_ReturnsNoContent_DeletionOfGivenActorWasCalledAndSaved()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            //Arrange
             int actorId = 1;
-            mockActorRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Actor>(new Actor(){Id = actorId}));
-
+            _mockActorRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Actor>(new Actor(){Id = actorId}));
             //Act
-            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
-
-            IActionResult result = await controller.DeleteActor(actorId);
-            mockActorRepository.Verify(x => x.Delete(It.Is<Actor>(a => a.Id == actorId)), Times.Once);
-            mockActorRepository.Verify(x => x.SaveAsync(), Times.Once);
+            IActionResult result = await _controller.DeleteActor(actorId);
+            _mockActorRepository.Verify(x => x.Delete(It.Is<Actor>(a => a.Id == actorId)), Times.Once);
+            _mockActorRepository.Verify(x => x.SaveAsync(), Times.Once);
             Assert.IsType<NoContentResult>(result);
         }
 
@@ -228,21 +197,15 @@ namespace Movies.UnitTesting.Controllers
         public async Task LinkActorWithMovie_NonExistingActor_ReturnsNotFound(int actorId, int movieId)
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
-
             var actorList = new List<Actor>();
             Mock<IQueryable<Actor>> mockActors = actorList.AsQueryable().BuildMock();
-            mockActorRepository.Setup(x => x.GetAll()).Returns(mockActors.Object);
+            _mockActorRepository.Setup(x => x.GetAll()).Returns(mockActors.Object);
 
             var movieList = new List<Movie>() { new Movie() { Id = movieId } };
             Mock<IQueryable<Movie>> mockMovies = movieList.AsQueryable().BuildMock();
-            mockMovieRepository.Setup(x => x.GetAll()).Returns(mockMovies.Object);
+            _mockMovieRepository.Setup(x => x.GetAll()).Returns(mockMovies.Object);
             //ACT
-            IActionResult result = await controller.LinkActorWithMovie(actorId, movieId);
+            IActionResult result = await _controller.LinkActorWithMovie(actorId, movieId);
 
             //ASSERT
             NotFoundObjectResult notFoundObjectResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -254,21 +217,15 @@ namespace Movies.UnitTesting.Controllers
         public async Task LinkActorWithMovie_NonExistingMovie_ReturnsNotFound(int actorId, int movieId)
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
-
             var actorList = new List<Actor>() { new Actor() { Id = actorId } };
             Mock<IQueryable<Actor>> mockActors = actorList.AsQueryable().BuildMock();
-            mockActorRepository.Setup(x => x.GetAll()).Returns(mockActors.Object);
+            _mockActorRepository.Setup(x => x.GetAll()).Returns(mockActors.Object);
 
             var movieList = new List<Movie>();
             Mock<IQueryable<Movie>> mockMovies = movieList.AsQueryable().BuildMock();
-            mockMovieRepository.Setup(x => x.GetAll()).Returns(mockMovies.Object);
+            _mockMovieRepository.Setup(x => x.GetAll()).Returns(mockMovies.Object);
             //ACT
-            IActionResult result = await controller.LinkActorWithMovie(actorId, movieId);
+            IActionResult result = await _controller.LinkActorWithMovie(actorId, movieId);
 
             //ASSERT
             NotFoundObjectResult notFoundObjectResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -280,28 +237,23 @@ namespace Movies.UnitTesting.Controllers
         public async Task LinkActorWithMovie_MovieRoleAlreadyExists_NoNewMovieRoleIsCreatedAndReturnsOk(int actorId, int movieId)
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
-
+ 
             var actorList = new List<Actor>() { new Actor() { Id = actorId } };
             Mock<IQueryable<Actor>> mockActors = actorList.AsQueryable().BuildMock();
-            mockActorRepository.Setup(x => x.GetAll()).Returns(mockActors.Object);
+            _mockActorRepository.Setup(x => x.GetAll()).Returns(mockActors.Object);
 
             var movieList = new List<Movie>() { new Movie() { Id = movieId } };
             Mock<IQueryable<Movie>> mockMovies = movieList.AsQueryable().BuildMock();
-            mockMovieRepository.Setup(x => x.GetAll()).Returns(mockMovies.Object);
+            _mockMovieRepository.Setup(x => x.GetAll()).Returns(mockMovies.Object);
 
             var movieRoleList = new List<MovieRole>() { new MovieRole() { MovieId = movieId, ActorId = actorId} };
             Mock<IQueryable<MovieRole>> mockMovieRoles = movieRoleList.AsQueryable().BuildMock();
-            mockMovieRoleRepository.Setup(x => x.GetAll()).Returns(mockMovieRoles.Object);
+            _mockMovieRoleRepository.Setup(x => x.GetAll()).Returns(mockMovieRoles.Object);
             //ACT
-            IActionResult result = await controller.LinkActorWithMovie(actorId, movieId);
+            IActionResult result = await _controller.LinkActorWithMovie(actorId, movieId);
 
-            mockMovieRoleRepository.Verify(x => x.AddAsync(It.IsAny<MovieRole>()), Times.Never);
-            mockMovieRoleRepository.Verify(x => x.SaveAsync(), Times.Never);
+            _mockMovieRoleRepository.Verify(x => x.AddAsync(It.IsAny<MovieRole>()), Times.Never);
+            _mockMovieRoleRepository.Verify(x => x.SaveAsync(), Times.Never);
 
             //ASSERT
             Assert.IsType<OkResult>(result);
@@ -312,28 +264,22 @@ namespace Movies.UnitTesting.Controllers
         public async Task LinkActorWithMovie_MovieRoleDoesntExist_NewMovieRoleIsCreatedAndReturnsOk(int actorId, int movieId)
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
-
             var actorList = new List<Actor>() { new Actor() { Id = actorId } };
             Mock<IQueryable<Actor>> mockActors = actorList.AsQueryable().BuildMock();
-            mockActorRepository.Setup(x => x.GetAll()).Returns(mockActors.Object);
+            _mockActorRepository.Setup(x => x.GetAll()).Returns(mockActors.Object);
 
             var movieList = new List<Movie>() { new Movie() { Id = movieId } };
             Mock<IQueryable<Movie>> mockMovies = movieList.AsQueryable().BuildMock();
-            mockMovieRepository.Setup(x => x.GetAll()).Returns(mockMovies.Object);
+            _mockMovieRepository.Setup(x => x.GetAll()).Returns(mockMovies.Object);
 
             var movieRoleList = new List<MovieRole>();
             Mock<IQueryable<MovieRole>> mockMovieRoles = movieRoleList.AsQueryable().BuildMock();
-            mockMovieRoleRepository.Setup(x => x.GetAll()).Returns(mockMovieRoles.Object);
+            _mockMovieRoleRepository.Setup(x => x.GetAll()).Returns(mockMovieRoles.Object);
             //ACT
-            IActionResult result = await controller.LinkActorWithMovie(actorId, movieId);
+            IActionResult result = await _controller.LinkActorWithMovie(actorId, movieId);
 
-            mockMovieRoleRepository.Verify(x => x.AddAsync(It.IsAny<MovieRole>()), Times.Once);
-            mockMovieRoleRepository.Verify(x => x.SaveAsync(), Times.Once);
+            _mockMovieRoleRepository.Verify(x => x.AddAsync(It.IsAny<MovieRole>()), Times.Once);
+            _mockMovieRoleRepository.Verify(x => x.SaveAsync(), Times.Once);
 
             //ASSERT
             Assert.IsType<OkResult>(result);
