@@ -1,20 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Movies.Dto;
+using Newtonsoft.Json;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Movies.Dto;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Movies.UnitTesting.Integration
 {
-    public class ActorsControllerIntegrationTests : IClassFixture<TestFixture>
+    public class ActorsControllerIntegrationTests : IClassFixture<IntegrationTestFixture>
     {
-        private readonly TestFixture _fixture;
+        private readonly IntegrationTestFixture _fixture;
 
-        public ActorsControllerIntegrationTests(TestFixture fixture)
+        public ActorsControllerIntegrationTests(IntegrationTestFixture fixture)
         {
             _fixture = fixture;
         }
@@ -47,7 +45,6 @@ namespace Movies.UnitTesting.Integration
             HttpResponseMessage response = await _fixture.Client.PostAsync("actors", stringContent);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-
         }
 
     }

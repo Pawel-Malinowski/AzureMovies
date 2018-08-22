@@ -20,9 +20,10 @@ namespace Movies.Controllers
         private readonly IRepository<Actor> _actorRepository;
         private readonly IRepository<MovieRole> _movieRoleRepository;
 
+
         public MoviesController(
-            IRepository<Movie> movieRepository, 
             IRepository<Actor> actorRepository,
+            IRepository<Movie> movieRepository, 
             IRepository<MovieRole> movieRoleRepository)
         {
             _movieRepository = movieRepository;
@@ -57,11 +58,11 @@ namespace Movies.Controllers
         /// <response code="200">Movie list retrieved</response>
         [HttpGet]
         [ProducesResponseType(200)]
-        public async Task<ActionResult<IEnumerable<MovieDto>>> GetMovies()
+        public async Task<ActionResult<ICollection<MovieDto>>> GetMovies()
         {
             IReadOnlyList<Movie> movies = await _movieRepository.GetAll().Include(x => x.MovieRoles).ToListAsync();
 
-            var movieDtos = movies.Select(x => x.ToDto());
+            var movieDtos = movies.Select(x => x.ToDto()).ToList();
             return Ok(movieDtos);
         }
 
@@ -72,12 +73,12 @@ namespace Movies.Controllers
         /// <response code="200">Movie list retrieved</response>
         [HttpGet("search")]
         [ProducesResponseType(200)]
-        public async Task<ActionResult<IEnumerable<MovieDto>>> GetMoviesByYear(int year)
+        public async Task<ActionResult<ICollection<MovieDto>>> GetMoviesByYear(int year)
         {
             IReadOnlyList<Movie> movies = await _movieRepository.SearchFor(x => x.Year == year)
                                                                 .Include(x => x.MovieRoles)
                                                                 .ToListAsync();
-            var movieDtos = movies.Select(x => x.ToDto());
+            var movieDtos = movies.Select(x => x.ToDto()).ToList();
             return Ok(movieDtos);
         }
 
@@ -90,19 +91,18 @@ namespace Movies.Controllers
         [HttpGet("{movieId}/actors")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<IEnumerable<ActorDto>>> GetActorsFromMovie(int movieId)
+        public async Task<ActionResult<ICollection<ActorDto>>> GetActorsFromMovie(int movieId)
         {
             Movie movie = await _movieRepository.GetAsync(movieId);
 
             if (movie == null)
                 return NotFound();
-
-
+            
             IReadOnlyList<Actor> actors = await _actorRepository.GetAll()
                                                               .Include(x => x.MovieRoles)
                                                               .Where(x => x.MovieRoles.Any(r => r.MovieId == movieId))
                                                               .ToListAsync();
-            IEnumerable<ActorDto> actorDtos = actors.Select(x => x.ToDto());
+            IEnumerable<ActorDto> actorDtos = actors.Select(x => x.ToDto()).ToList();
 
             return Ok(actorDtos);
         }
@@ -111,26 +111,28 @@ namespace Movies.Controllers
         /// Add new movie with existing actors
         /// </summary>
         /// <param name="request">Movie json object</param>
-        /// <response code="201">Movie with actors successfully created</response>
+        /// <response code="201">Movie with actors successfullym created</response>
         /// <response code="400">Provided movie object is invalid</response>
         /// <response code="404">One of provided actors doesn't exist</response>
         [HttpPost]
         [ProducesResponseType(201)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> CreateMovieWithActors(CreateMovieDto request)
+        public async Task<ActionResult<MovieDto>> CreateMovieWithActors(CreateMovieDto request)
         {
+            foreach (var actorId in request.ActorIds)
+            {
+                Actor actor = await _actorRepository.GetAsync(actorId);
+
+                if (actor == null)
+                    return NotFound("Actor: " + actorId); 
+            }
             var newMovie = new Movie() { Title = request.Title, Year = request.Year, Genre = request.Genre };
 
             await _movieRepository.AddAsync(newMovie);
 
             foreach (var actorId in request.ActorIds)
             {
-                Actor actor = await _actorRepository.GetAsync(actorId);
-
-                if (actor == null)
-                    return NotFound("Actor: " + actorId);
-
                 await _movieRoleRepository.AddAsync(new MovieRole() { Movie = newMovie, ActorId = actorId });
             }
             await _movieRepository.SaveAsync();
@@ -152,9 +154,6 @@ namespace Movies.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> UpdateMovie(int movieId, UpdateMovieDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest();
-
             Movie movie = await _movieRepository.GetAsync(movieId);
 
             if (movie == null)

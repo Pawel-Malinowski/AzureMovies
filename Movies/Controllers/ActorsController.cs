@@ -36,7 +36,7 @@ namespace Movies.Controllers
         /// <response code="200">Actor list retrieved</response>
         [HttpGet]
         [ProducesResponseType(200)]
-        public async Task<ActionResult<ICollection<Actor>>> GetActors()
+        public async Task<ActionResult<ICollection<ActorDto>>> GetActors()
         {
             ICollection<Actor> actors = await _actorRepository.GetAll()
                                                         .Include(x => x.MovieRoles)
@@ -86,7 +86,8 @@ namespace Movies.Controllers
                                                               .Include(x => x.MovieRoles)
                                                               .Where(x => x.MovieRoles.Any(r => r.ActorId == actorId))
                                                               .ToListAsync();
-            var movieDtos = movies.Select(x => x.ToDto());
+            var movieDtos = movies.Select(x => x.ToDto()).ToList();
+
             return Ok(movieDtos);
         }
 
@@ -100,10 +101,7 @@ namespace Movies.Controllers
         [ProducesResponseType(201)]
         [ProducesResponseType(400)]
         public async Task<ActionResult<ActorDto>> CreateActor(CreateActorDto request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest();
-
+        { 
             var newActor = new Actor()
             {
                 FirstName = request.FirstName,
@@ -130,9 +128,6 @@ namespace Movies.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> LinkActorWithMovie(int actorId, int movieId)
         {
-            if (actorId < 1 || movieId < 1)
-                return BadRequest();
-
             bool actorExists = await _actorRepository.GetAll().AnyAsync(x => x.Id == actorId);
 
             if (!actorExists)

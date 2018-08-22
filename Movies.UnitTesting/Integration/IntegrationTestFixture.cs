@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 
-namespace Movies.UnitTesting
+namespace Movies.UnitTesting.Integration
 {
-    public class TestFixture : IDisposable
+    public class IntegrationTestFixture : IDisposable
     {
         private readonly TestServer _testServer;
         public HttpClient Client { get; }
 
-        public TestFixture()
+        public IntegrationTestFixture()
         {
             var builder = new WebHostBuilder()
                 .UseStartup<Startup>();
