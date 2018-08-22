@@ -17,7 +17,7 @@ namespace Movies.UnitTesting
             var builder = new WebHostBuilder()
                 .UseStartup<Startup>();
 
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "IntegrationTesting");
 
             _testServer = new TestServer(builder);
             Client = _testServer.CreateClient();

@@ -1,0 +1,9 @@
+version: '3.4'
+
+services:
+  movies:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - "CloudDbConnection=Server=tcp:sql-test-server-movies.database.windows.net,1433;Initial Catalog=movies-db;Persist Security Info=False;User ID={UserId};Password={Pass};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+    ports:
+      - "80"

@@ -42,7 +42,7 @@ namespace Movies
             if (environment == "Production")
             {
                 services.AddDbContext<DataContext>(options => 
-                    options.UseSqlServer(Configuration.GetConnectionString("CloudDbConnection")));
+                    options.UseSqlServer(Configuration["CloudDbConnection"]));
                 services.BuildServiceProvider().GetService<DataContext>().Database.Migrate();
             }
             else if (environment == "Development")
@@ -51,12 +51,11 @@ namespace Movies
                     options.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
                 services.BuildServiceProvider().GetService<DataContext>().Database.Migrate();
             }
-            else if (environment == "Testing")
+            else if (environment == "IntegrationTesting")
             {
                 services.AddDbContext<DataContext>(options =>
                     options.UseInMemoryDatabase("MoviesDatabase"));
             }
-
 
             services.AddScoped<IRepository<Actor>, Repository<Actor>>();
             services.AddScoped<IRepository<Movie>, Repository<Movie>>();

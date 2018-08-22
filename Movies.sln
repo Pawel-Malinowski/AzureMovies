@@ -5,7 +5,9 @@ VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Movies", "Movies\Movies.csproj", "{76A289FD-B573-4E07-BB25-D516A3D994F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Movies.UnitTesting", "Movies.UnitTesting\Movies.UnitTesting.csproj", "{C4DBFA7A-7976-443D-AC5D-A2F88F6D9C8D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Movies.UnitTesting", "Movies.UnitTesting\Movies.UnitTesting.csproj", "{C4DBFA7A-7976-443D-AC5D-A2F88F6D9C8D}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{69FACB1D-664C-4FE2-B327-ED6CDBDD8FBF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{C4DBFA7A-7976-443D-AC5D-A2F88F6D9C8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4DBFA7A-7976-443D-AC5D-A2F88F6D9C8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4DBFA7A-7976-443D-AC5D-A2F88F6D9C8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69FACB1D-664C-4FE2-B327-ED6CDBDD8FBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69FACB1D-664C-4FE2-B327-ED6CDBDD8FBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69FACB1D-664C-4FE2-B327-ED6CDBDD8FBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69FACB1D-664C-4FE2-B327-ED6CDBDD8FBF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
