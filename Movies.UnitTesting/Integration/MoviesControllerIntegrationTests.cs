@@ -51,7 +51,7 @@ namespace Movies.UnitTesting.Integration
                 Genre = genre
             });
             var stringContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await _fixture.Client.PutAsync("movies", stringContent);
+            HttpResponseMessage response = await _fixture.Client.PutAsync("movies/1", stringContent);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
