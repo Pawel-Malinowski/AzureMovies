@@ -1,9 +1,6 @@
-﻿using System;
+﻿using Movies.Attributes;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Dynamic;
-using System.Text;
-using Movies.Attributes;
 
 namespace Movies.Models
 {

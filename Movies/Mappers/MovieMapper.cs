@@ -10,6 +10,7 @@ namespace Movies.Mappers
         {
             return new MovieDto()
             {
+                Id = movie.Id,
                 Title = movie.Title,
                 Year = movie.Year,
                 Genre = movie.Genre,

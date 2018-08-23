@@ -36,6 +36,7 @@ namespace Movies
                 c.SwaggerDoc("v1", new Info { Title = "Cloud Movie Database", Version = "v1", Contact = new Contact(){Name = "Paweł Malinowski"}});
                 c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Movies.xml"));
             });
+
             InitDbContext(services);
 
             services.AddScoped<IRepository<Actor>, Repository<Actor>>();

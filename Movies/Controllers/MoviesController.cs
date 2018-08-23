@@ -146,7 +146,7 @@ namespace Movies.Controllers
         /// <response code="204">Movie successfully updated</response>
         /// <response code="400">Provided movie object is invalid</response>
         /// <response code="404">Movie doesn't exists</response>
-        [HttpPut]
+        [HttpPut("{movieId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]

@@ -10,6 +10,7 @@ namespace Movies.Mappers
         {
             return new ActorDto()
             {
+                Id = actor.Id,
                 FirstName = actor.FirstName,
                 LastName = actor.LastName,
                 BirthDate = actor.BirthDate,
