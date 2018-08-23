@@ -1,14 +1,12 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Movies.Dto;
+using Movies.Mappers;
+using Movies.Models;
+using Movies.Repositories;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Movies.Converters;
-using Movies.Dto;
-using Movies.Models;
-using Movies.Repositories;
 
 namespace Movies.Controllers
 {
@@ -21,8 +19,8 @@ namespace Movies.Controllers
         private readonly IRepository<MovieRole> _movieRoleRepository;
 
         public ActorsController(
-            IRepository<Actor> actorRepository, 
-            IRepository<Movie> movieRepository, 
+            IRepository<Actor> actorRepository,
+            IRepository<Movie> movieRepository,
             IRepository<MovieRole> movieRoleRepository)
         {
             _actorRepository = actorRepository;
@@ -101,7 +99,7 @@ namespace Movies.Controllers
         [ProducesResponseType(201)]
         [ProducesResponseType(400)]
         public async Task<ActionResult<ActorDto>> CreateActor(CreateActorDto request)
-        { 
+        {
             var newActor = new Actor()
             {
                 FirstName = request.FirstName,

@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Movies.Dto;
 using Movies.Models;
 
-namespace Movies.Converters
+namespace Movies.Mappers
 {
-    public static class MovieConverter
+    public static class MovieMapper
     {
         public static MovieDto ToDto(this Movie movie)
         {

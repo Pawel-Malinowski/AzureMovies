@@ -42,10 +42,9 @@ namespace Movies.UnitTesting.Controllers
             _mockMovieRepository.Setup(x => x.GetAsync(It.Is<int>(id => id == movieId))).Returns(Task.FromResult<Movie>(new Movie() { Id = movieId }));
 
             //Act
-            var controller = new MoviesController(_mockActorRepository.Object, _mockMovieRepository.Object, _mockMovieRoleRepository.Object);
             var updateMovieDto = new UpdateMovieDto() { Title = "God father 2", Year = 1980, Genre = "Gangster" };
 
-            IActionResult result = await controller.UpdateMovie(movieId, updateMovieDto);
+            IActionResult result = await _controller.UpdateMovie(movieId, updateMovieDto);
 
             _mockMovieRepository.Verify(x => x.Update(It.Is<Movie>(m => m.Id == movieId &&
                                                                        m.Genre == updateMovieDto.Genre &&
@@ -60,22 +59,16 @@ namespace Movies.UnitTesting.Controllers
         public async Task GetMovieById__WhenMovieExists_ReturnsData()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
             var movie = new Movie { Id = 5, Title = "Pulp Fiction", Year = 1990, Genre = "Action" };
-
 
             var mock = new List<Movie>
             {
                 movie
             }.AsQueryable().BuildMock();
-            mockMovieRepository.Setup(x => x.GetAll()).Returns(mock.Object);
-
-            var controller = new MoviesController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
+            _mockMovieRepository.Setup(x => x.GetAll()).Returns(mock.Object);
 
             //ACT
-            var result = await controller.GetMovie(movie.Id);
+            var result = await _controller.GetMovie(movie.Id);
 
             //ASSERT
             OkObjectResult okObjectResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -87,20 +80,13 @@ namespace Movies.UnitTesting.Controllers
         }
 
         [Fact]
-        public async Task GetMovieById__WhenMovieIsDoesntExist_ReturnsNotFound()
+        public async Task GetMovieById__WhenMovieDoesntExist_ReturnsNotFound()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            var mock = new List<Actor>().AsQueryable().BuildMock();
-            mockActorRepository.Setup(x => x.GetAll()).Returns(mock.Object);
-
-            var controller = new ActorsController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
-
+            var mock = new List<Movie>().AsQueryable().BuildMock();
+            _mockMovieRepository.Setup(x => x.GetAll()).Returns(mock.Object);
             //ACT
-            var result = await controller.GetActor(1);
+            var result = await _controller.GetMovie(1);
 
             //ASSERT
             Assert.IsType<NotFoundResult>(result.Result);
@@ -110,10 +96,6 @@ namespace Movies.UnitTesting.Controllers
         public async Task GetMovies_ReturnsExpectedNumberOfResults()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
             var movieList = new List<Movie>
             {
                 new Movie {Id = 1, Title="Pulp Fiction"},
@@ -121,12 +103,10 @@ namespace Movies.UnitTesting.Controllers
             };
 
             Mock<IQueryable<Movie>> mock = movieList.AsQueryable().BuildMock();
-            mockMovieRepository.Setup(x => x.GetAll()).Returns(mock.Object);
-
-            var controller = new MoviesController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
+            _mockMovieRepository.Setup(x => x.GetAll()).Returns(mock.Object);
 
             //ACT
-            ActionResult<ICollection<MovieDto>> result = await controller.GetMovies();
+            ActionResult<ICollection<MovieDto>> result = await _controller.GetMovies();
 
             //ASSERT
             OkObjectResult okObjectResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -141,10 +121,6 @@ namespace Movies.UnitTesting.Controllers
         public async Task GetMoviesByYear_ReturnsExpectedNumberOfResults(int year)
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
             var mockMovieList = new List<Movie>
             {
                 new Movie {Id = 1, Title="Pulp Fiction", Year = 1999},
@@ -152,12 +128,10 @@ namespace Movies.UnitTesting.Controllers
             };
             var filteredMockMovieList = mockMovieList.Where(x => x.Year == year).ToList();
             Mock<IQueryable<Movie>> mock = filteredMockMovieList.AsQueryable().BuildMock();
-            mockMovieRepository.Setup(x => x.SearchFor(It.IsAny<Expression<Func<Movie, bool>>>())).Returns(mock.Object);
-
-            var controller = new MoviesController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
+            _mockMovieRepository.Setup(x => x.SearchFor(It.IsAny<Expression<Func<Movie, bool>>>())).Returns(mock.Object);
 
             //ACT
-            ActionResult<ICollection<MovieDto>> result = await controller.GetMoviesByYear(year);
+            ActionResult<ICollection<MovieDto>> result = await _controller.GetMoviesByYear(year);
 
             //ASSERT
             OkObjectResult okObjectResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -169,10 +143,6 @@ namespace Movies.UnitTesting.Controllers
         public async Task GetActorsFromExistingMovie_ReturnsExpectedNumberOfResults()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
             int movieId = 1;
             var actorList = new List<Actor>
             {
@@ -181,13 +151,11 @@ namespace Movies.UnitTesting.Controllers
             };
 
             Mock<IQueryable<Actor>> mock = actorList.AsQueryable().BuildMock();
-            mockActorRepository.Setup(x => x.GetAll()).Returns(mock.Object);
+            _mockActorRepository.Setup(x => x.GetAll()).Returns(mock.Object);
 
-            mockMovieRepository.Setup(x => x.GetAsync(movieId)).Returns(Task.FromResult(new Movie() { Id = movieId }));
-            var controller = new MoviesController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
-
+            _mockMovieRepository.Setup(x => x.GetAsync(movieId)).Returns(Task.FromResult(new Movie() { Id = movieId }));
             //ACT
-            ActionResult<ICollection<ActorDto>> result = await controller.GetActorsFromMovie(movieId);
+            ActionResult<ICollection<ActorDto>> result = await _controller.GetActorsFromMovie(movieId);
 
             //ASSERT
             OkObjectResult okObjectResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -199,24 +167,18 @@ namespace Movies.UnitTesting.Controllers
         public async Task CreateMovieWithNonExistinggActor_NoMovieCreated_ReturnsNotFound()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
             int actorId = 1;
-
-            mockActorRepository.Setup(x => x.GetAsync(actorId)).Returns(Task.FromResult<Actor>(null));
-            var controller = new MoviesController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
+            _mockActorRepository.Setup(x => x.GetAsync(actorId)).Returns(Task.FromResult<Actor>(null));
 
             //ACT
-            ActionResult<MovieDto> result = await controller.CreateMovieWithActors(new CreateMovieDto()
+            ActionResult<MovieDto> result = await _controller.CreateMovieWithActors(new CreateMovieDto()
             {
                 Title = "Titanic",
                 Year = 1999,
                 ActorIds = new[] { actorId }
             });
-            mockMovieRepository.Verify(x => x.AddAsync(It.IsAny<Movie>()), Times.Never);
-            mockMovieRepository.Verify(x => x.SaveAsync(), Times.Never);
+            _mockMovieRepository.Verify(x => x.AddAsync(It.IsAny<Movie>()), Times.Never);
+            _mockMovieRepository.Verify(x => x.SaveAsync(), Times.Never);
 
             //ASSERT
             Assert.IsType<NotFoundObjectResult>(result.Result);
@@ -226,15 +188,9 @@ namespace Movies.UnitTesting.Controllers
         public async Task CreateMovieWithExistinggActor_NoMovieCreated_ReturnsNotFound()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
             int actorId = 1;
 
-            mockActorRepository.Setup(x => x.GetAsync(actorId)).Returns(Task.FromResult<Actor>(new Actor(){Id = actorId}));
-            var controller = new MoviesController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
-
+            _mockActorRepository.Setup(x => x.GetAsync(actorId)).Returns(Task.FromResult<Actor>(new Actor(){Id = actorId}));
             var request = new CreateMovieDto()
             {
                 Title = "Titanic",
@@ -244,15 +200,15 @@ namespace Movies.UnitTesting.Controllers
             };
 
             //ACT
-            ActionResult<MovieDto> result = await controller.CreateMovieWithActors(request);
+            ActionResult<MovieDto> result = await _controller.CreateMovieWithActors(request);
 
             //ASSERT
-            mockMovieRepository.Verify(x => x.AddAsync(It.Is<Movie>(a => a.Title == request.Title &&
+            _mockMovieRepository.Verify(x => x.AddAsync(It.Is<Movie>(a => a.Title == request.Title &&
                                                                          a.Year == request.Year &&
                                                                          a.Genre == request.Genre)), Times.Once);
-            mockMovieRoleRepository.Verify(x => x.AddAsync(It.Is<MovieRole>(a => a.ActorId == actorId)), Times.Once);
+            _mockMovieRoleRepository.Verify(x => x.AddAsync(It.Is<MovieRole>(a => a.ActorId == actorId)), Times.Once);
 
-            mockMovieRepository.Verify(x => x.SaveAsync(), Times.Once);
+            _mockMovieRepository.Verify(x => x.SaveAsync(), Times.Once);
 
             CreatedAtActionResult createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result.Result);
             MovieDto movieDto = Assert.IsType<MovieDto>(createdAtActionResult.Value);
@@ -265,17 +221,11 @@ namespace Movies.UnitTesting.Controllers
         public async Task GetActorsFromNonExistingMovie_ReturnsNotFound()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
             int movieId = 1;
-
-            mockMovieRepository.Setup(x => x.GetAsync(movieId)).Returns(Task.FromResult<Movie>(null));
-            var controller = new MoviesController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
+            _mockMovieRepository.Setup(x => x.GetAsync(movieId)).Returns(Task.FromResult<Movie>(null));
 
             //ACT
-            ActionResult<ICollection<ActorDto>> result = await controller.GetActorsFromMovie(movieId);
+            ActionResult<ICollection<ActorDto>> result = await _controller.GetActorsFromMovie(movieId);
 
             //ASSERT
             Assert.IsType<NotFoundResult>(result.Result);
@@ -285,20 +235,12 @@ namespace Movies.UnitTesting.Controllers
         public async Task UpdateNonExistingMovie_ReturnsNotFound_NoUpdateWasCalled()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            //Arrange
-
-            mockMovieRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Movie>(null));
+            _mockMovieRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Movie>(null));
 
             //Act
-            var controller = new MoviesController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
-
-            IActionResult result = await controller.UpdateMovie(1, new UpdateMovieDto());
-            mockMovieRepository.Verify(x => x.Update(It.IsAny<Movie>()), Times.Never());
-            mockMovieRepository.Verify(x => x.SaveAsync(), Times.Never());
+            IActionResult result = await _controller.UpdateMovie(1, new UpdateMovieDto());
+            _mockMovieRepository.Verify(x => x.Update(It.IsAny<Movie>()), Times.Never());
+            _mockMovieRepository.Verify(x => x.SaveAsync(), Times.Never());
 
             Assert.IsType<NotFoundResult>(result);
         }
@@ -307,20 +249,12 @@ namespace Movies.UnitTesting.Controllers
         public async Task DeleteNonExistingMovie_ReturnsNotFound_NoDeleteWasCalled()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            //Arrange
-
-            mockMovieRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Movie>(null));
+            _mockMovieRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Movie>(null));
 
             //Act
-            var controller = new MoviesController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
-
-            IActionResult result = await controller.DeleteMovie(1);
-            mockActorRepository.Verify(x => x.Delete(It.IsAny<Actor>()), Times.Never());
-            mockActorRepository.Verify(x => x.SaveAsync(), Times.Never());
+            IActionResult result = await _controller.DeleteMovie(1);
+            _mockMovieRepository.Verify(x => x.Delete(It.IsAny<Movie>()), Times.Never());
+            _mockMovieRepository.Verify(x => x.SaveAsync(), Times.Never());
 
             Assert.IsType<NotFoundResult>(result);
         }
@@ -329,20 +263,13 @@ namespace Movies.UnitTesting.Controllers
         public async Task DeleteExistingMovie_ReturnsNoContent_DeletionOfGivenMovieWasCalledAndSaved()
         {
             //Arrange
-            var mockMovieRepository = new Mock<IRepository<Movie>>();
-            var mockActorRepository = new Mock<IRepository<Actor>>();
-            var mockMovieRoleRepository = new Mock<IRepository<MovieRole>>();
-
-            //Arrange
             int movieId = 1;
-            mockMovieRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Movie>(new Movie() { Id = movieId }));
+            _mockMovieRepository.Setup(x => x.GetAsync(It.IsAny<int>())).Returns(Task.FromResult<Movie>(new Movie() { Id = movieId }));
 
             //Act
-            var controller = new MoviesController(mockActorRepository.Object, mockMovieRepository.Object, mockMovieRoleRepository.Object);
-
-            IActionResult result = await controller.DeleteMovie(movieId);
-            mockMovieRepository.Verify(x => x.Delete(It.Is<Movie>(a => a.Id == movieId)), Times.Once);
-            mockMovieRepository.Verify(x => x.SaveAsync(), Times.Once);
+            IActionResult result = await _controller.DeleteMovie(movieId);
+            _mockMovieRepository.Verify(x => x.Delete(It.Is<Movie>(a => a.Id == movieId)), Times.Once);
+            _mockMovieRepository.Verify(x => x.SaveAsync(), Times.Once);
             Assert.IsType<NoContentResult>(result);
         }
     }

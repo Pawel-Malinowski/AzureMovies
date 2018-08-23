@@ -36,26 +36,7 @@ namespace Movies
                 c.SwaggerDoc("v1", new Info { Title = "Cloud Movie Database", Version = "v1", Contact = new Contact(){Name = "Paweł Malinowski"}});
                 c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Movies.xml"));
             });
-
-            string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
-            if (environment == "Production")
-            {
-                services.AddDbContext<DataContext>(options => 
-                    options.UseSqlServer(Configuration["CloudDbConnection"]));
-                services.BuildServiceProvider().GetService<DataContext>().Database.Migrate();
-            }
-            else if (environment == "Development")
-            {
-                services.AddDbContext<DataContext>(options =>
-                    options.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
-                services.BuildServiceProvider().GetService<DataContext>().Database.Migrate();
-            }
-            else if (environment == "IntegrationTesting")
-            {
-                services.AddDbContext<DataContext>(options =>
-                    options.UseInMemoryDatabase("MoviesDatabase"));
-            }
+            InitDbContext(services);
 
             services.AddScoped<IRepository<Actor>, Repository<Actor>>();
             services.AddScoped<IRepository<Movie>, Repository<Movie>>();
@@ -101,6 +82,29 @@ namespace Movies
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Cloud Movie Database");
             });
+        }
+
+        private void InitDbContext(IServiceCollection services)
+        {
+            string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+            if (environment == "Production")
+            {
+                services.AddDbContext<DataContext>(options =>
+                    options.UseSqlServer(Configuration["CloudDbConnection"]));
+                services.BuildServiceProvider().GetService<DataContext>().Database.Migrate();
+            }
+            else if (environment == "Development")
+            {
+                services.AddDbContext<DataContext>(options =>
+                    options.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
+                services.BuildServiceProvider().GetService<DataContext>().Database.Migrate();
+            }
+            else if (environment == "IntegrationTesting")
+            {
+                services.AddDbContext<DataContext>(options =>
+                    options.UseInMemoryDatabase("MoviesDatabase"));
+            }
         }
     }
 }

@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Movies.Attributes
 {
@@ -15,7 +12,7 @@ namespace Movies.Attributes
 
         public override bool IsValid(object value)
         {
-            int intValue = (int) value;
+            int intValue = (int)value;
 
             return intValue <= DateTime.Today.Year;
         }

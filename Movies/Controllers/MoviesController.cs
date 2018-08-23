@@ -1,14 +1,12 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Movies.Dto;
+using Movies.Mappers;
+using Movies.Models;
+using Movies.Repositories;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Movies.Conventions;
-using Movies.Converters;
-using Movies.Dto;
-using Movies.Models;
-using Movies.Repositories;
 
 namespace Movies.Controllers
 {
@@ -23,7 +21,7 @@ namespace Movies.Controllers
 
         public MoviesController(
             IRepository<Actor> actorRepository,
-            IRepository<Movie> movieRepository, 
+            IRepository<Movie> movieRepository,
             IRepository<MovieRole> movieRoleRepository)
         {
             _movieRepository = movieRepository;
@@ -46,7 +44,7 @@ namespace Movies.Controllers
                                                 .Include(x => x.MovieRoles)
                                                 .SingleOrDefaultAsync(x => x.Id == movieId);
 
-            if (movie == null) 
+            if (movie == null)
                 return NotFound();
 
             return Ok(movie.ToDto());
@@ -97,7 +95,7 @@ namespace Movies.Controllers
 
             if (movie == null)
                 return NotFound();
-            
+
             IReadOnlyList<Actor> actors = await _actorRepository.GetAll()
                                                               .Include(x => x.MovieRoles)
                                                               .Where(x => x.MovieRoles.Any(r => r.MovieId == movieId))
@@ -125,7 +123,7 @@ namespace Movies.Controllers
                 Actor actor = await _actorRepository.GetAsync(actorId);
 
                 if (actor == null)
-                    return NotFound("Actor: " + actorId); 
+                    return NotFound("Actor: " + actorId);
             }
             var newMovie = new Movie() { Title = request.Title, Year = request.Year, Genre = request.Genre };
 
